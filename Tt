@@ -1,0 +1,57 @@
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+
+@Component({
+  selector: 'html-tooltip',
+  templateUrl: './html-tooltip.component.html',
+  styleUrls: ['./html-tooltip.component.css']
+})
+export class HtmlTooltipComponent implements OnInit {
+  @Input() content: string;
+
+  @ViewChild('overlay') overlay: ElementRef;
+
+  overlayRef: OverlayRef;
+
+  constructor(private overlay: Overlay) { }
+
+  ngOnInit(): void {
+  }
+
+  show(): void {
+    if (!this.overlayRef) {
+      const positionStrategy = this.overlay.position()
+        .flexibleConnectedTo(this.overlay)
+        .withPositions([
+          { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top' },
+          { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom' },
+          { originX: 'end', originY: 'center', overlayX: 'start', overlayY: 'center' },
+          { originX: 'start', originY: 'center', overlayX: 'end', overlayY: 'center' }
+        ]);
+
+      this.overlayRef = this.overlay.create({
+        positionStrategy,
+        hasBackdrop: true,
+        backdropClass: 'cdk-overlay-transparent-backdrop'
+      });
+    }
+
+    const portal = new TemplatePortal(this.overlay, this.overlayRef);
+    this.overlayRef.attach(portal);
+  }
+
+  hide(): void {
+    if (this.overlayRef && this.overlayRef.hasAttached()) {
+      this.overlayRef.detach();
+    }
+  }
+}
+
+
+
+<ng-template #overlay>
+  <div class="html-tooltip-overlay">
+    <div [innerHTML]="content"></div>
+  </div>
+</ng-template>
