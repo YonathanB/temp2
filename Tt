@@ -55,3 +55,51 @@ export class HtmlTooltipComponent implements OnInit {
     <div [innerHTML]="content"></div>
   </div>
 </ng-template>
+
+
+
+
+import { Directive, ElementRef, HostListener, Input, Renderer2 } from '@angular/core';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+
+@Directive({
+  selector: '[htmlTooltip]'
+})
+export class HtmlTooltipDirective {
+  @Input('htmlTooltip') content: string;
+
+  overlayRef: OverlayRef;
+
+  constructor(private overlay: Overlay, private elementRef: ElementRef, private renderer: Renderer2) { }
+
+  @HostListener('mouseenter')
+  show(): void {
+    if (!this.overlayRef) {
+      const overlayConfig = this.overlay.create({
+        positionStrategy: this.overlay.position().flexibleConnectedTo(this.elementRef)
+          .withPositions([
+            { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top' },
+            { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom' },
+            { originX: 'end', originY: 'center', overlayX: 'start', overlayY: 'center' },
+            { originX: 'start', originY: 'center', overlayX: 'end', overlayY: 'center' }
+          ]),
+        hasBackdrop: true,
+        backdropClass: 'cdk-overlay-transparent-backdrop'
+      });
+
+      const portal = new TemplatePortal(this.templateRef, this.viewContainerRef);
+      this.overlayRef = overlayConfig.attach(portal);
+    }
+  }
+
+  @HostListener('mouseleave')
+  hide(): void {
+    if (this.overlayRef && this.overlayRef.hasAttached()) {
+      this.overlayRef.detach();
+    }
+  }
+}
+
+
+
